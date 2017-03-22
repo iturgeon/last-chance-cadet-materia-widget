@@ -37,6 +37,13 @@
                   "value": 100,
                   "text": "to prefer"
                 }
+              ],
+              "assets": [
+                {
+                  "id":"1",
+                  "type":"mp3",
+                  "url":"assets/clap.mp3"
+                }
               ]
             },
             {

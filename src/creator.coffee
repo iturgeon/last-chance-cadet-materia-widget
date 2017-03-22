@@ -32,17 +32,24 @@ MatchingCreator.directive('focusMe', ['$timeout', '$parse', ($timeout, $parse) -
 ])
 
 # Set the controller for the scope of the document body.
-MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', ($scope) ->
+MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $sce) ->
 	# Stores data to be gathered on save.
 	$scope.widget =
 		title     : "My Matching widget"
 		wordPairs : []
+		media     : []
+
+	$scope.acceptedMediaTypes = ['mp3']
+
+	audioRef      = []
 
 	# Adds and removes a pair of textareas for users to input a word pair.
-	$scope.addWordPair = (q=null, a=null, id='') ->
-		$scope.widget.wordPairs.push {question:q,answer:a,id:id}
+	$scope.addWordPair = (q=null, a=null, type=null, id='') ->
+		$scope.widget.wordPairs.push {question:q,answer:a,type:type,id:id}
+		console.log($scope.widget.wordPairs.length)
 
-	$scope.removeWordPair = (index) -> $scope.widget.wordPairs.splice(index, 1)
+	$scope.removeWordPair = (index) -> 
+		$scope.widget.wordPairs.splice(index, 1)
 
 	# Public methods
 	$scope.initNewWidget = (widget, baseUrl) ->
@@ -66,7 +73,35 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', ($scope) ->
 	$scope.onQuestionImportComplete = (questions) ->
 		$scope.$apply -> $scope.addWordPair(question.questions[0].text, question.answers[0].text, question.id) for question in questions
 
-	$scope.onMediaImportComplete = (media) -> null
+	$scope.beginMediaImport = (index, which) ->
+		Materia.CreatorCore.showMediaImporter($scope.acceptedMediaTypes)
+
+		audioRef[0] = index
+		audioRef[1] = which
+
+	$scope.onMediaImportComplete = (media) ->
+		# use $sce.trustAsResourceUrl to avoid interpolation error
+		url = $sce.trustAsResourceUrl(Materia.CreatorCore.getMediaUrl media[0].id + ".mp3")
+		# adds placeholders in the media array
+		add_placeholders = -> 
+			if $scope.widget.media.length < audioRef[0]+1
+				$scope.widget.media.push [0,0]
+
+		from = $scope.widget.media.length
+		to = audioRef[0]
+		add_placeholders() for from in [from..to]
+
+		$scope.widget.media[audioRef[0]].splice(audioRef[1], 1, url)
+		$scope.$apply -> true
+
+	$scope.mediaSource = (index, which) ->
+		return $scope.widget.media[index][which]
+
+	$scope.checkMedia = (index, which) ->
+		if $scope.widget.media[index] == undefined
+			return false
+		else
+			return $scope.widget.media[index][which] != 0
 
 	# View actions
 	$scope.setTitle = ->
@@ -87,10 +122,13 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', ($scope) ->
 
 	# Private methods
 	_buildSaveData = ->
+		if $scope.widget.media.length < $scope.widget.wordPairs.length
+			$scope.widget.media.push [0,0]
+
 		items      = []
 		wordPairs  = $scope.widget.wordPairs
-		items.push( _process wordPairs[i] ) for i in [0..wordPairs.length-1]
-		
+		items.push( _process(wordPairs[i], $scope.widget.media[i]) ) for i in [0..wordPairs.length-1]
+
 		options : {}
 		assets  : []
 		rand    : false
@@ -102,10 +140,11 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', ($scope) ->
 	# Get each pair's data from the controller and organize it into Qset form.
 	_process = (wordPair) ->
 		questions: [
-			text  : wordPair.question
+			text  : wordPair.question,
+			test  : "test"
 		]
 		answers  : [
-			text  : wordPair.answer
+			text  : wordPair.answer,
 			value : '100',
 			id    : ''
 		]
