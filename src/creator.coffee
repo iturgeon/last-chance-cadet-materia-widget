@@ -45,11 +45,11 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 
 	# Adds and removes a pair of textareas for users to input a word pair.
 	$scope.addWordPair = (q=null, a=null, type=null, id='') ->
-		$scope.widget.wordPairs.push {question:q,answer:a,type:type,id:id}
-		console.log($scope.widget.wordPairs.length)
+		$scope.widget.wordPairs.push {question:q,answer:a,id:id}
 
 	$scope.removeWordPair = (index) -> 
 		$scope.widget.wordPairs.splice(index, 1)
+		$scope.widget.media.splice(index, 1)
 
 	# Public methods
 	$scope.initNewWidget = (widget, baseUrl) ->
@@ -93,6 +93,13 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 
 		$scope.widget.media[audioRef[0]].splice(audioRef[1], 1, url)
 		$scope.$apply -> true
+
+		#Load all audio tags
+		audioTags = document.getElementsByTagName("audio")
+		audioAmount = audioTags.length
+		count = 0
+		for count in [0..audioAmount]
+			audioTags[count].load()
 
 	$scope.mediaSource = (index, which) ->
 		return $scope.widget.media[index][which]
@@ -140,8 +147,7 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 	# Get each pair's data from the controller and organize it into Qset form.
 	_process = (wordPair) ->
 		questions: [
-			text  : wordPair.question,
-			test  : "test"
+			text  : wordPair.question
 		]
 		answers  : [
 			text  : wordPair.answer,
