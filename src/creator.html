@@ -42,7 +42,7 @@
 					<textarea ng-hide="checkMedia($index, 0)" class='question-text' ng-model="pair.question" ng-style='autoSize(pair)' focus-me='true' tabindex='{{$index+1}}'></textarea>
 					<div class="audio-button" ng-show="checkMedia($index, 0)">
 						<audio id="audio" controls="controls">
-							<source id="audio-source" ng-src="{{widget.media[$index][0]}}" type="audio/mpeg">
+							<source id="audio-source" ng-src="{{checkMedia($index, 0) && widget.wordPairs[$index].media[0] || ''}}" type="audio/mpeg">
 						</audio>
 					</div>
 					<img class="addAudio" src="assets/add_audio.png" ng-click="beginMediaImport($index, 0); checkMedia($index, 0)" ng-show="!mediaReady">
@@ -51,7 +51,7 @@
 					<textarea ng-hide="checkMedia($index, 1)" class='answer-text' ng-enter="addWordPair()" ng-style='autoSize(pair)' ng-model="pair.answer" tabindex='{{$index+2}}'></textarea>
 					<div class="audio-button" ng-show="checkMedia($index, 1)">
 						<audio id="audio" controls="controls">
-							<source id="audio-source" ng-src="{{widget.media[$index][1]}}" type="audio/mpeg">
+							<source id="audio-source" ng-src="{{checkMedia($index, 1) && widget.wordPairs[$index].media[1] || ''}}"" type="audio/mpeg">
 						</audio>
 					</div>
 					<span class='icon-close' ng-click="removeWordPair($index)"></span>
