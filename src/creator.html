@@ -45,13 +45,17 @@
 							<source id="audio-source" ng-src="{{checkMedia($index, 0) && widget.wordPairs[$index].media[0] || ''}}" type="audio/mpeg">
 						</audio>
 					</div>
-					<img class="addAudio" src="assets/add_audio.png" ng-click="beginMediaImport($index, 0); checkMedia($index, 0)" ng-show="!mediaReady">
+					<div class="audioImage" ng-init="imgSrcQ='assets/add_audio.png'" ng-mouseover="imgSrcQ='assets/add_audio_hover.png'" ng-mouseout="imgSrcQ='assets/add_audio.png'">
+						<img class="addAudio" src="{{imgSrcQ}}" ng-click="beginMediaImport($index, 0); checkMedia($index, 0)">
+					</div>
 					<div class='separate'></div>
-					<img class="addAudio" src="assets/add_audio.png" ng-click="beginMediaImport($index, 1); checkMedia($index, 1)" ng-show="!mediaReady">
+					<div class="audioImage" ng-init="imgSrcA='assets/add_audio.png'" ng-mouseover="imgSrcA='assets/add_audio_hover.png'" ng-mouseout="imgSrcA='assets/add_audio.png'">
+						<img class="addAudio" src="{{imgSrcA}}" ng-click="beginMediaImport($index, 1); checkMedia($index, 1)">
+					</div>
 					<textarea ng-hide="checkMedia($index, 1)" class='answer-text' ng-enter="addWordPair()" ng-style='autoSize(pair)' ng-model="pair.answer" tabindex='{{$index+2}}'></textarea>
 					<div class="audio-button" ng-show="checkMedia($index, 1)">
 						<audio id="audio" controls="controls">
-							<source id="audio-source" ng-src="{{checkMedia($index, 1) && widget.wordPairs[$index].media[1] || ''}}"" type="audio/mpeg">
+							<source id="audio-source" ng-src="{{checkMedia($index, 1) && widget.wordPairs[$index].media[1] || ''}}" type="audio/mpeg">
 						</audio>
 					</div>
 					<span class='icon-close' ng-click="removeWordPair($index)"></span>

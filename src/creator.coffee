@@ -13,13 +13,13 @@ Updated : 6/14
 MatchingCreator = angular.module( 'matchingCreator', ['ngAnimate'] )
 
 MatchingCreator.directive('ngEnter', ->
-    return (scope, element, attrs) ->
-        element.bind("keydown keypress", (event) ->
-            if(event.which == 13)
-                scope.$apply ->
-                    scope.$eval(attrs.ngEnter)
-                event.preventDefault()
-        )
+	return (scope, element, attrs) ->
+		element.bind("keydown keypress", (event) ->
+			if(event.which == 13)
+				scope.$apply ->
+					scope.$eval(attrs.ngEnter)
+				event.preventDefault()
+		)
 )
 MatchingCreator.directive('focusMe', ['$timeout', '$parse', ($timeout, $parse) ->
 	link: (scope, element, attrs) ->
@@ -37,7 +37,6 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 	$scope.widget =
 		title     : "My Matching widget"
 		wordPairs : []
-		media     : []
 
 	$scope.acceptedMediaTypes = ['mp3']
 
@@ -49,7 +48,6 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 
 	$scope.removeWordPair = (index) -> 
 		$scope.widget.wordPairs.splice(index, 1)
-		$scope.widget.media.splice(index, 1)
 
 	# Public methods
 	$scope.initNewWidget = (widget, baseUrl) ->
@@ -80,30 +78,20 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 		audioRef[1] = which
 
 	$scope.onMediaImportComplete = (media) ->
-		# The unsafeUrl needs to be saved so that it can be entered in the qset
-		unsafeUrl = Materia.CreatorCore.getMediaUrl media[0].id + ".mp3"
 		# use $sce.trustAsResourceUrl to avoid interpolation error
 		url = $sce.trustAsResourceUrl(Materia.CreatorCore.getMediaUrl media[0].id + ".mp3")
-		# adds placeholders in the media array
-		add_placeholders = -> 
-			if $scope.widget.media.length < audioRef[0]+1
-				$scope.widget.media.push [0,0]
 
-		from = $scope.widget.media.length
-		to = audioRef[0]
-		add_placeholders() for from in [from..to]
-
-		$scope.widget.media[audioRef[0]].splice(audioRef[1], 1, unsafeUrl)
 		$scope.widget.wordPairs[audioRef[0]].media.splice(audioRef[1], 1, url)
 		$scope.$apply -> true
 
 		# load all audio tags
 		audioTags = document.getElementsByTagName("audio")
 		audioAmount = audioTags.length
-		console.log(audioAmount)
 		count = 0
+
 		for count in [0..audioAmount]
-			audioTags[count].load()
+			if audioTags[count] != undefined
+				audioTags[count].load()
 
 	$scope.checkMedia = (index, which) ->
 		if $scope.widget.wordPairs[index].media == 0
@@ -128,12 +116,24 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 
 		height: size + 'px'
 
+	unwrapQuestionValue = (counter) ->
+		try
+			return $scope.widget.wordPairs[counter].media[0].$$unwrapTrustedValue()
+		catch error
+			return 0
+
+	unwrapAnswerValue = (counter) ->
+		try
+			return $scope.widget.wordPairs[counter].media[1].$$unwrapTrustedValue()
+		catch error
+			return 0
+
 	# Private methods
 	_buildSaveData = ->
 		items      = []
 		wordPairs  = $scope.widget.wordPairs
-		media = $scope.widget.media
-		items.push( _process(wordPairs[i],media[i]) ) for i in [0..wordPairs.length-1]
+
+		items.push( _process(wordPairs[i],unwrapQuestionValue(i),unwrapAnswerValue(i)) ) for i in [0..wordPairs.length-1]
 
 		options : {}
 		assets  : []
@@ -144,7 +144,7 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 		]
 
 	# Get each pair's data from the controller and organize it into Qset form.
-	_process = (wordPair, media) ->
+	_process = (wordPair, questionMedia, answerMedia) ->
 		questions: [
 			text  : wordPair.question
 		]
@@ -155,7 +155,7 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 		]
 		type     : 'QA'
 		id       : wordPair.id
-		assets   : media
+		assets   : [questionMedia,answerMedia]
 
 	Materia.CreatorCore.start $scope
 ]
