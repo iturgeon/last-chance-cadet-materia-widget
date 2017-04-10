@@ -43,8 +43,8 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 	audioRef      = []
 
 	# Adds and removes a pair of textareas for users to input a word pair.
-	$scope.addWordPair = (q=null, a=null, type=null, id='') ->
-		$scope.widget.wordPairs.push {question:q,answer:a,id:id,media:[0,0]}
+	$scope.addWordPair = (q=null, a=null, media=[0,0], id='') ->
+		$scope.widget.wordPairs.push {question:q,answer:a,media:media,id:id}
 
 	$scope.removeWordPair = (index) -> 
 		$scope.widget.wordPairs.splice(index, 1)
@@ -56,10 +56,28 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 
 	$scope.initExistingWidget = (title, widget, qset, version, baseUrl) ->
 		_items = qset.items[0].items
+
+		# the following wrap functions are used to avoid interpolation error
+		wrapInitMedia = (counter) ->
+			try
+				return [$sce.trustAsResourceUrl(_items[counter].assets[0]), $sce.trustAsResourceUrl(_items[counter].assets[1])]
+			try
+				return [0, $sce.trustAsResourceUrl(_items[counter].assets[1])]
+			try
+				return [$sce.trustAsResourceUrl(_items[counter].assets[0]), 0]
+			catch error
+				return 0
+
+		# wrapInitAnswerMedia = (counter) ->
+		# 	try
+		# 		return $sce.trustAsResourceUrl(_items[counter].assets[1])
+		# 	catch error
+		# 		return 0
+
 		$scope.$apply ->
 			$scope.widget.title     = title
 			$scope.widget.wordPairs = []
-			$scope.addWordPair( _items[i].questions[0].text, _items[i].answers[0].text ) for i in [0.._items.length-1]
+			$scope.addWordPair( _items[i].questions[0].text, _items[i].answers[0].text, wrapInitMedia(i) ) for i in [0.._items.length-1]
 
 	$scope.onSaveClicked = (mode = 'save') ->
 		if $scope.widget.title
@@ -90,6 +108,7 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 		count = 0
 
 		for count in [0..audioAmount]
+			# if statement used here to only load the audio tags that have a src
 			if audioTags[count] != undefined
 				audioTags[count].load()
 
