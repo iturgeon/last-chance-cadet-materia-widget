@@ -68,12 +68,6 @@ MatchingCreator.controller 'matchingCreatorCtrl', ['$scope', '$sce', ($scope, $s
 			catch error
 				return 0
 
-		# wrapInitAnswerMedia = (counter) ->
-		# 	try
-		# 		return $sce.trustAsResourceUrl(_items[counter].assets[1])
-		# 	catch error
-		# 		return 0
-
 		$scope.$apply ->
 			$scope.widget.title     = title
 			$scope.widget.wordPairs = []
